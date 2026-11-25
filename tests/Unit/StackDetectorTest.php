@@ -21,7 +21,10 @@ final class StackDetectorTest extends TestCase
             'packages' => [['name' => 'laravel/framework', 'version' => 'v12.4.1'], ['name' => 'livewire/livewire', 'version' => 'v3.6.0']],
             'packages-dev' => [],
         ]));
-        $this->writeFile('package.json', json_encode(['devDependencies' => ['vite' => '^6', 'tailwindcss' => '^4', 'vue' => '^3']]));
+        $this->writeFile('package.json', json_encode([
+            'dependencies' => ['vue' => '^3', '@inertiajs/vue3' => '^2', '@radix-ui/react-slot' => '^1'],
+            'devDependencies' => ['vite' => '^6', 'tailwindcss' => '^4', 'angular' => '^1'],
+        ]));
 
         $stack = (new StackDetector(new Filesystem))->detect($this->root, 'pgsql');
 
@@ -31,7 +34,8 @@ final class StackDetectorTest extends TestCase
         $this->assertTrue($stack->pint);
         $this->assertTrue($stack->phpstan);
         $this->assertSame(['Livewire' => '3.6.0', 'atannex/billing' => '^1.0'], $stack->packages);
-        $this->assertSame(['Vue', 'Tailwind CSS', 'Vite'], $stack->frontend);
+        // "angular" is the unrelated legacy package; Angular is @angular/core, so it must not match.
+        $this->assertSame(['Vue', 'Inertia (Vue)', 'Tailwind CSS', 'Radix UI', 'Vite'], $stack->frontend);
         $this->assertTrue($stack->hasComposerScript('test'));
         $this->assertSame('pgsql', $stack->database);
     }

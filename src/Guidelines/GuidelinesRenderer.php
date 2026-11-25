@@ -6,6 +6,7 @@ namespace Atannex\ClaudeSupport\Guidelines;
 
 use Atannex\ClaudeSupport\Resources\ResourceDefinition;
 use Atannex\ClaudeSupport\Resources\ResourceType;
+use Atannex\ClaudeSupport\Stack\Catalog;
 use Atannex\ClaudeSupport\Stack\Stack;
 
 /** Renders the body of the managed CLAUDE.md block from detected facts. */
@@ -78,16 +79,16 @@ final class GuidelinesRenderer
             $lines[] = "Default database connection driver: {$stack->database}";
         }
 
-        if ($stack->frontend !== []) {
-            $lines[] = 'Frontend: '.implode(', ', $stack->frontend);
+        foreach (Catalog::group(Catalog::NPM, array_fill_keys($stack->frontend, '')) as $category => $labels) {
+            $lines[] = "Frontend — {$category}: ".implode(', ', array_keys($labels));
         }
 
-        if ($stack->packages !== []) {
+        foreach (Catalog::group(Catalog::COMPOSER, $stack->packages) as $category => $versions) {
             $named = [];
-            foreach ($stack->packages as $label => $version) {
+            foreach ($versions as $label => $version) {
                 $named[] = $version !== '' ? "{$label} ({$version})" : $label;
             }
-            $lines[] = 'Packages: '.implode(', ', $named);
+            $lines[] = "Packages — {$category}: ".implode(', ', $named);
         }
 
         return "### Stack\n\n".$this->list($lines);

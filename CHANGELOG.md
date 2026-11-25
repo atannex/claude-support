@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-11-25
+
+### Changed
+
+- Stack detection now uses a catalog of 237 real packages (88 Composer, 149 npm), all checked against Packagist and npm. They're grouped by category: auth, UI, infrastructure, search, data, tenancy, payments, APIs and AI, observability and quality on the PHP side; frameworks, Laravel bridges, styling, state, routing, forms, i18n, realtime, charts, build, testing and linting on the JavaScript side. `CLAUDE.md` lists them one line per category.
+- Scoped families such as `@radix-ui/*` are matched by prefix.
+
+### Fixed
+
+- Frontend entries with incorrect npm names (for example `angular` instead of `@angular/core`) no longer report the wrong package or nothing at all.
+
 ## [1.0.1] — 2026-11-25
 
 ### Changed

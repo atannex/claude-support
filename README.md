@@ -55,7 +55,32 @@ To refresh the Claude Code files after package updates, add this to your applica
 
 ### Project instructions
 
-The package adds a managed section to `CLAUDE.md` based on your project setup. It can include your PHP and Laravel versions, database, testing tools, frontend tooling, and useful project conventions.
+The package adds a managed section to `CLAUDE.md` based on your project setup. It includes your PHP and Laravel versions, database, test runner, the commands Claude should use to verify its work, and your project conventions.
+
+It also lists the packages your project uses, read from `composer.json`, `composer.lock` and `package.json`. Detection uses a catalog of over 230 widely used Composer and npm packages, grouped by category so Claude knows how the application is built:
+
+| Source   | Categories                                                                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Composer | Auth & access, UI & admin, Infrastructure, Search, Domain & data, Auditing & backups, Multi-tenancy, Payments, APIs & AI, Observability, Quality & testing               |
+| npm      | Frameworks, Meta-frameworks, Laravel bridges, Styling & components, State & data, Routing, Forms & validation, Internationalisation, Realtime, Charts, graphics & motion, Build, Testing, Language & linting |
+
+For example:
+
+```markdown
+### Stack
+
+- PHP ^8.3, Laravel 13.44.1
+- Tests: Pest
+- Default database connection driver: mysql
+- Frontend — Frameworks: Vue
+- Frontend — Laravel bridges: Inertia (Vue), Ziggy
+- Frontend — Styling & components: Tailwind CSS, Reka UI
+- Frontend — Build: Vite, laravel-vite-plugin
+- Packages — Auth & access: Fortify (1.25.0), spatie/laravel-permission (6.21.0)
+- Packages — Infrastructure: Horizon (5.33.1)
+```
+
+Package families such as `@radix-ui/*` are matched by prefix, and any `atannex/*` packages are always listed.
 
 ## Commands
 

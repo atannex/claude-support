@@ -16,7 +16,8 @@ final class InstallTest extends TestCase
 
     public function test_it_installs_the_command_guidelines_settings_and_manifest(): void
     {
-        $this->writeFile('composer.json', json_encode(['require' => ['laravel/framework' => '^12.0'], 'require-dev' => ['laravel/pint' => '^1.0']]));
+        $this->writeFile('composer.json', json_encode(['require' => ['laravel/framework' => '^12.0', 'laravel/sanctum' => '^4.0', 'stancl/tenancy' => '^3.9'], 'require-dev' => ['laravel/pint' => '^1.0']]));
+        $this->writeFile('package.json', json_encode(['devDependencies' => ['vue' => '^3', 'vite' => '^6']]));
 
         $this->artisan('claude:install')->assertSuccessful();
 
@@ -25,6 +26,10 @@ final class InstallTest extends TestCase
         $guidelines = $this->readFile('CLAUDE.md');
         $this->assertTrue(ManagedBlock::has($guidelines));
         $this->assertStringContainsString('Laravel ^12.0', $guidelines);
+        $this->assertStringContainsString('- Frontend — Frameworks: Vue', $guidelines);
+        $this->assertStringContainsString('- Frontend — Build: Vite', $guidelines);
+        $this->assertStringContainsString('- Packages — Auth & access: Sanctum (^4.0)', $guidelines);
+        $this->assertStringContainsString('- Packages — Multi-tenancy: stancl/tenancy (^3.9)', $guidelines);
         $this->assertStringContainsString('`vendor/bin/pint --dirty`', $guidelines);
         $this->assertStringContainsString('`/enterprise-redesign` — Deeply audit and redesign', $guidelines);
 

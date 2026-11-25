@@ -11,8 +11,8 @@ namespace Atannex\ClaudeSupport\Stack;
 final readonly class Stack
 {
     /**
-     * @param  array<string, string>  $packages  notable composer packages => installed version
-     * @param  list<string>  $frontend  detected frontend tooling, display names
+     * @param  array<string, string>  $packages  Catalog::COMPOSER label (or atannex/* name) => installed version
+     * @param  list<string>  $frontend  Catalog::NPM labels, in catalog order
      * @param  list<string>  $composerScripts
      */
     public function __construct(
