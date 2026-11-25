@@ -1,0 +1,70 @@
+{
+    "name": "atannex/claude-support",
+    "description": "Claude Code support for Laravel: curated slash commands, subagents and skills (including an enterprise-grade product redesign brief), a stack-aware CLAUDE.md block and safe settings.json permissions, kept in sync by a hash manifest that never overwrites your local edits.",
+    "keywords": [
+        "ai",
+        "ai-assistant",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "claude-md",
+        "developer-tools",
+        "laravel",
+        "skills",
+        "slash-commands",
+        "subagents"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Atanga Leke Collins",
+            "email": "atangageihlekecollins@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.15",
+        "laravel/pint": "^1.32",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Atannex\\ClaudeSupport\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Atannex\\ClaudeSupport\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Atannex\\ClaudeSupport\\ClaudeSupportServiceProvider"
+            ],
+            "aliases": {
+                "ClaudeSupport": "Atannex\\ClaudeSupport\\Facades\\ClaudeSupport"
+            }
+        },
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse --no-progress",
+        "format": "pint"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
