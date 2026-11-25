@@ -41,6 +41,7 @@ To refresh the Claude Code files after package updates, add this to your applica
 | `/audit [scope]`               | Audits the selected area and writes a prioritised report to `docs/audit/`.                                   |
 | `/feature <description>`       | Helps implement a feature, including its backend, interface, and tests.                                      |
 | `/upgrade-laravel [version]`   | Guides a Laravel upgrade through small, verifiable steps.                                                    |
+| `/admin-panel [area]`          | Builds or redesigns an admin panel or dashboard on a consistent design system, then verifies it.             |
 
 ### Subagents
 
@@ -48,10 +49,23 @@ To refresh the Claude Code files after package updates, add this to your applica
 | -------------------- | ----------------------------------------------------------------------------- |
 | `migration-reviewer` | Reviews migrations for deployment risks, data loss, indexes, and constraints. |
 | `query-auditor`      | Looks for N+1 queries, missing indexes, and inefficient database queries.     |
+| `ui-reviewer`        | Reviews admin and dashboard screens against the design system.                |
 
-### Skill
+### Skills
 
 - `laravel-testing` — project-focused guidance for writing and running Laravel tests.
+- `admin-dashboard-design` — a design system for admin panels and dashboards (see below).
+
+### Admin panels and dashboards
+
+Whether your team builds on Filament or Nova or designs its own panel from scratch, Claude follows one design system so every screen looks and behaves the same:
+
+- **Design tokens** — a neutral colour scale with one accent colour and status colours, type scale, 4px spacing grid, radius, elevation and motion, in light and dark mode. They come as a ready-to-paste Tailwind CSS v4 `@theme` block or plain CSS variables. Existing project tokens are extended, never duplicated.
+- **Layout** — an app shell with a collapsible sidebar that becomes a mobile drawer, a top bar with search and a command palette, consistent page headers, and navigation grouped by business area.
+- **Components** — data tables with server-side sorting, filtering and bulk actions, forms, stat cards, charts, modals and slide-overs, toasts, badges, and empty, loading, error and no-permission states.
+- **Quality** — a checklist covering WCAG AA accessibility, responsive behaviour, performance and authorization.
+
+Claude reads your stack from `CLAUDE.md` and picks the path: on Filament or Nova it works through their theming and panel APIs, and with Livewire, Inertia or Blade it builds the shell and components itself. Run `/admin-panel` to build or redesign a panel, and ask the `ui-reviewer` agent to check the result.
 
 ### Project instructions
 

@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-11-25
+
+### Added
+
+- `admin-dashboard-design` skill: a design system for admin panels and dashboards, with design tokens (Tailwind CSS v4 and plain CSS, light and dark), layout and navigation rules, component guidance and a quality checklist. It adapts to Filament, Nova or panels built from scratch.
+- `/admin-panel` command to build or redesign an admin panel or dashboard on that design system and verify it.
+- `ui-reviewer` agent that reviews admin screens against the design system.
+
 ## [1.1.0] — 2026-11-25
 
 ### Changed

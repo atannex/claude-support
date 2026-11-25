@@ -13,17 +13,21 @@ final class ResourcesTest extends TestCase
     {
         $this->artisan('claude:install')->assertSuccessful();
 
-        foreach (['enterprise-redesign', 'audit', 'feature', 'upgrade-laravel'] as $command) {
+        foreach (['enterprise-redesign', 'audit', 'feature', 'upgrade-laravel', 'admin-panel'] as $command) {
             $this->assertFileExists($this->root."/.claude/commands/{$command}.md");
         }
         $this->assertFileExists($this->root.'/.claude/agents/migration-reviewer.md');
         $this->assertFileExists($this->root.'/.claude/agents/query-auditor.md');
+        $this->assertFileExists($this->root.'/.claude/agents/ui-reviewer.md');
         $this->assertFileExists($this->root.'/.claude/skills/laravel-testing/SKILL.md');
+        $this->assertFileExists($this->root.'/.claude/skills/admin-dashboard-design/SKILL.md');
+        $this->assertFileExists($this->root.'/.claude/skills/admin-dashboard-design/references/tokens.md');
 
         $guidelines = $this->readFile('CLAUDE.md');
         $this->assertStringContainsString('### Subagents', $guidelines);
         $this->assertStringContainsString('`migration-reviewer` — Reviews Laravel migrations', $guidelines);
         $this->assertStringContainsString('`laravel-testing` — How to write', $guidelines);
+        $this->assertStringContainsString('`admin-dashboard-design` — Design system and layout rules', $guidelines);
     }
 
     public function test_every_shipped_resource_passes_validation(): void
@@ -31,9 +35,9 @@ final class ResourcesTest extends TestCase
         $names = array_map(fn ($r): string => $r->type->value.'/'.$r->name, ClaudeSupport::resources());
 
         $this->assertSame([
-            'commands/audit', 'commands/enterprise-redesign', 'commands/feature', 'commands/upgrade-laravel',
-            'agents/migration-reviewer', 'agents/query-auditor',
-            'skills/laravel-testing',
+            'commands/admin-panel', 'commands/audit', 'commands/enterprise-redesign', 'commands/feature', 'commands/upgrade-laravel',
+            'agents/migration-reviewer', 'agents/query-auditor', 'agents/ui-reviewer',
+            'skills/admin-dashboard-design', 'skills/laravel-testing',
         ], $names);
     }
 
