@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-11-25
+
+### Changed
+
+- Require Laravel 12 or 13. Every Laravel 11 release is now blocked by Composer's security-advisory policy, and Laravel 11 is past end of life.
+
+### Fixed
+
+- CI: enable the `fileinfo` extension on Windows runners, and install the dev-only tools (Pint, Larastan) only in the quality job, so the PHP 8.2 jobs can install dependencies.
+
 ## [1.0.0] — 2026-11-25
 
 ### Added

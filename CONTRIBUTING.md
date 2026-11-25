@@ -11,7 +11,7 @@ composer analyse    # PHPStan, level 8
 composer format     # Pint
 ```
 
-All three must pass. CI runs them across PHP 8.2–8.5 and Laravel 11–13, on Linux and Windows.
+All three must pass. CI runs them across PHP 8.2–8.5 and Laravel 12–13, on Linux and Windows.
 
 ## Adding a command, agent or skill
 

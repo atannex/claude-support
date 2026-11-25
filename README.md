@@ -5,7 +5,7 @@ Claude Code support for Laravel projects. This package adds a set of Laravel-foc
 It also keeps track of the files it installs. When you update or remove the package, your own edits are protected.
 
 - PHP 8.2+
-- Laravel 11, 12, or 13
+- Laravel 12 or 13
 - Linux, macOS, and Windows
 
 ## Installation
