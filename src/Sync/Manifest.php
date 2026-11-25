@@ -39,10 +39,30 @@ final class Manifest
             throw ClaudeSupportException::unreadableManifest($path);
         }
 
+        $files = [];
+        foreach ($data['files'] ?? [] as $file => $hash) {
+            // The manifest is committed, so treat it as untrusted: a crafted path would
+            // otherwise let a sync or uninstall delete files outside .claude/.
+            if (! is_string($file) || ! self::isManagedPath($file) || ! is_string($hash)) {
+                throw ClaudeSupportException::unreadableManifest($path, 'entry ['.$file.'] is not a file under .claude/ with a sha256');
+            }
+            $files[$file] = $hash;
+        }
+
         return new self(
-            array_map('strval', $data['files'] ?? []),
-            array_values(array_map('strval', $data['permissions'] ?? [])),
+            $files,
+            array_values(array_filter($data['permissions'] ?? [], 'is_string')),
         );
+    }
+
+    /** Only resource files under .claude/ are ever tracked; anything else in the manifest is tampering. */
+    public static function isManagedPath(string $path): bool
+    {
+        return str_starts_with($path, '.claude/')
+            && $path !== self::PATH
+            && ! str_contains($path, '\\')
+            && ! str_contains($path, "\0")
+            && ! in_array('..', explode('/', $path), true);
     }
 
     public function save(Filesystem $fs, string $root): void
@@ -55,7 +75,7 @@ final class Manifest
             'schema' => self::SCHEMA,
             'files' => (object) $this->files,
             'permissions' => $this->permissions,
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n");
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
     }
 
     /**

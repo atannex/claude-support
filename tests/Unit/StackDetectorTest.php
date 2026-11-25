@@ -50,4 +50,23 @@ final class StackDetectorTest extends TestCase
         $this->assertSame('PHPUnit', $stack->testRunner);
         $this->assertSame([], $stack->packages);
     }
+
+    public function test_malformed_manifests_do_not_crash_detection(): void
+    {
+        $this->writeFile('composer.json', json_encode([
+            'require' => ['php' => 8.2, 'laravel/framework' => ['^12.0'], 'laravel/pint' => '^1.0'],
+            'require-dev' => 'oops',
+            'scripts' => 'nope',
+        ]));
+        $this->writeFile('composer.lock', json_encode(['packages' => ['not-a-package', ['name' => 'x/y', 'version' => ['1']]], 'packages-dev' => 5]));
+        $this->writeFile('package.json', json_encode(['dependencies' => 'vue', 'devDependencies' => ['vite' => '^6']]));
+
+        $stack = (new StackDetector(new Filesystem))->detect($this->root);
+
+        $this->assertNull($stack->php);
+        $this->assertNull($stack->laravel);
+        $this->assertTrue($stack->pint);
+        $this->assertSame(['Vite'], $stack->frontend);
+        $this->assertSame([], $stack->composerScripts);
+    }
 }

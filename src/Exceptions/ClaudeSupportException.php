@@ -23,8 +23,8 @@ final class ClaudeSupportException extends RuntimeException
         return new self("Path [{$path}] must be relative to the project root and must not contain '..'.");
     }
 
-    public static function unreadableManifest(string $path): self
+    public static function unreadableManifest(string $path, string $reason = 'it is not valid JSON'): self
     {
-        return new self("Manifest [{$path}] is not valid JSON; fix or delete it before syncing.");
+        return new self("Manifest [{$path}] cannot be used: {$reason}. Fix or delete it before syncing.");
     }
 }

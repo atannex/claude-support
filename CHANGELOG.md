@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-11-25
+
+### Security
+
+- The manifest (`.claude/claude-support.json`) is now validated before use. A crafted entry such as `../file` could make `claude:install --force` or `claude:uninstall` delete files outside `.claude/`; such manifests are now rejected.
+- Files reached through a symlink that points outside the project (for example a cloned repository whose `.claude/` links elsewhere) are skipped instead of written or deleted.
+
+### Fixed
+
+- A CLAUDE.md whose start marker had lost its end marker could have project text between the markers overwritten on a later install. Unpaired markers are now reported and the file is left alone.
+- Malformed `composer.json`, `composer.lock` or `package.json` (non-array sections, non-string versions) no longer crash stack detection.
+- A manifest with non-string hashes is reported clearly instead of failing with a PHP error.
+- `.claude/settings.json` keeps non-ASCII characters as written instead of escaping them, and is never written empty if encoding fails.
+
 ## [1.2.0] — 2026-11-25
 
 ### Added

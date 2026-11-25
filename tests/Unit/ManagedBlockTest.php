@@ -46,4 +46,16 @@ final class ManagedBlockTest extends TestCase
         $this->assertSame("Before.\n\nAfter.\n", ManagedBlock::strip($doc));
         $this->assertSame('', ManagedBlock::strip(ManagedBlock::splice('', 'body')));
     }
+
+    public function test_a_start_marker_without_an_end_marker_never_eats_content(): void
+    {
+        $doc = "Intro.\n".ManagedBlock::START."\nold body, end marker deleted by hand\n\n## Team rules\n\nKeep me.\n";
+
+        $this->assertTrue(ManagedBlock::broken($doc));
+
+        // Even if a block is appended later, the next splice must not swallow the text in between.
+        $twice = ManagedBlock::splice($doc.ManagedBlock::START."\nx\n".ManagedBlock::END."\n", 'new');
+        $this->assertStringContainsString('Keep me.', $twice);
+        $this->assertStringContainsString("new\n".ManagedBlock::END, $twice);
+    }
 }

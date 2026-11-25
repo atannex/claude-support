@@ -81,6 +81,10 @@ final class Synchronizer
 
     private function planFile(string $path, string $contents, Manifest $manifest, bool $force): Change
     {
+        if ($this->escapesRoot($path)) {
+            return $this->outside($path);
+        }
+
         $current = $this->read($path);
         $known = $manifest->hashOf($path);
 
@@ -105,6 +109,10 @@ final class Synchronizer
 
     private function planOrphan(string $path, Manifest $manifest, bool $force, bool $uninstall): Change
     {
+        if ($this->escapesRoot($path)) {
+            return $this->outside($path);
+        }
+
         $current = $this->read($path);
 
         if ($current === null) {
@@ -124,7 +132,15 @@ final class Synchronizer
     private function planGuidelines(DesiredState $desired): ?Change
     {
         $path = $desired->guidelinesFile;
+        if ($this->escapesRoot($path)) {
+            return $this->outside($path);
+        }
+
         $current = $this->read($path);
+
+        if ($current !== null && ManagedBlock::broken($current)) {
+            return new Change($path, Action::Skip, reason: 'its claude-support start and end markers do not pair up; fix them so the block can be updated safely', tracked: false);
+        }
 
         if ($desired->guidelines === null) {
             if ($current === null || ! ManagedBlock::has($current)) {
@@ -156,6 +172,10 @@ final class Synchronizer
     private function planSettings(DesiredState $desired, Manifest $manifest): array
     {
         $path = $desired->settingsFile;
+        if ($this->escapesRoot($path)) {
+            return [$this->outside($path), null];
+        }
+
         $raw = $this->read($path);
         $owned = $manifest->permissions();
 
@@ -204,7 +224,7 @@ final class Synchronizer
             return [new Change($path, Action::Remove, tracked: false), $ownedNext];
         }
 
-        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n";
 
         return [new Change($path, $raw === null ? Action::Create : Action::Update, $json, tracked: false), $ownedNext];
     }
@@ -226,6 +246,34 @@ final class Synchronizer
             $this->files->deleteDirectory($dir);
             $dir = dirname($dir);
         }
+    }
+
+    /**
+     * True when a symlink makes the path land outside the project root, e.g. a
+     * cloned repository whose .claude/ points elsewhere. Links that stay inside
+     * the project are fine.
+     */
+    private function escapesRoot(string $path): bool
+    {
+        $root = realpath($this->root);
+        if ($root === false) {
+            return false;
+        }
+
+        // Resolve the deepest part of the path that exists; what doesn't exist yet can't be a link.
+        $existing = $this->root.'/'.$path;
+        while (! file_exists($existing) && ! is_link($existing) && $existing !== $this->root) {
+            $existing = dirname($existing);
+        }
+
+        $real = realpath($existing);
+
+        return $real === false || ($real !== $root && ! str_starts_with($real, rtrim($root, '/\\').DIRECTORY_SEPARATOR));
+    }
+
+    private function outside(string $path): Change
+    {
+        return new Change($path, Action::Skip, reason: 'resolves through a symlink to outside the project; left untouched', tracked: false);
     }
 
     private function read(string $path): ?string

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Atannex\ClaudeSupport\Tests\Feature;
 
 use Atannex\ClaudeSupport\Tests\TestCase;
+use Illuminate\Filesystem\Filesystem;
 
 final class SettingsAndUninstallTest extends TestCase
 {
@@ -86,5 +87,61 @@ final class SettingsAndUninstallTest extends TestCase
         $this->writeFile('.claude/commands/enterprise-redesign.md', 'tuned again');
         $this->artisan('claude:uninstall --force')->expectsConfirmation('Apply the changes above?', 'yes')->assertSuccessful();
         $this->assertFileDoesNotExist($this->root.'/.claude/commands/enterprise-redesign.md');
+    }
+
+    public function test_a_tampered_manifest_cannot_delete_files_outside_claude(): void
+    {
+        $outside = $this->root.'-outside.txt';
+        file_put_contents($outside, 'precious');
+        $this->writeFile('CLAUDE.md', 'precious');
+        $this->writeFile('.claude/claude-support.json', json_encode(['files' => [
+            '../'.basename($outside) => hash('sha256', 'precious'),
+            'CLAUDE.md' => hash('sha256', 'precious'),
+        ]]));
+
+        try {
+            $this->artisan('claude:uninstall --force')->assertFailed();
+            $this->artisan('claude:install --force')->assertFailed();
+
+            $this->assertSame('precious', file_get_contents($outside));
+            $this->assertSame('precious', $this->readFile('CLAUDE.md'));
+        } finally {
+            @unlink($outside);
+        }
+    }
+
+    public function test_a_manifest_with_non_string_hashes_is_reported(): void
+    {
+        $this->writeFile('.claude/claude-support.json', json_encode(['files' => ['.claude/commands/audit.md' => ['nested']]]));
+
+        $this->artisan('claude:install')->assertFailed();
+    }
+
+    public function test_settings_keep_unicode_unescaped(): void
+    {
+        $this->writeFile('.claude/settings.json', json_encode(['env' => ['GREETING' => 'héllo — ✓']], JSON_UNESCAPED_UNICODE));
+
+        $this->artisan('claude:install')->assertSuccessful();
+
+        $this->assertStringContainsString('héllo — ✓', $this->readFile('.claude/settings.json'));
+    }
+
+    public function test_symlinks_pointing_outside_the_project_are_never_followed(): void
+    {
+        $outside = $this->root.'-outside';
+        mkdir($outside);
+        mkdir($this->root.'/.claude');
+        symlink($outside, $this->root.'/.claude/commands');
+
+        try {
+            $this->artisan('claude:install')->assertSuccessful();
+
+            $this->assertSame([], glob($outside.'/*'));
+            $this->assertFileExists($this->root.'/.claude/agents/query-auditor.md');
+            $this->assertArrayNotHasKey('.claude/commands/audit.md', $this->readJson('.claude/claude-support.json')['files']);
+        } finally {
+            unlink($this->root.'/.claude/commands');
+            (new Filesystem)->deleteDirectory($outside);
+        }
     }
 }

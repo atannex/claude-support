@@ -54,16 +54,29 @@ final class ManagedBlock
         return self::locate($document) !== null;
     }
 
+    /**
+     * True when the markers don't pair up (one was deleted or duplicated by hand).
+     * Splicing then could swallow project text, so callers must leave the file alone.
+     */
+    public static function broken(string $document): bool
+    {
+        $starts = substr_count($document, self::START);
+        $ends = substr_count($document, self::END);
+
+        return $starts !== $ends || $starts > 1 || ($starts === 1 && self::locate($document) === null);
+    }
+
     /** @return array{int, int}|null offset and length of the block, markers included */
     private static function locate(string $document): ?array
     {
-        $start = strpos($document, self::START);
-        if ($start === false) {
+        $end = strpos($document, self::END);
+        if ($end === false) {
             return null;
         }
 
-        $end = strpos($document, self::END, $start);
-        if ($end === false) {
+        // The start marker nearest the end marker, so a stray earlier one can't widen the block.
+        $start = strrpos(substr($document, 0, $end), self::START);
+        if ($start === false) {
             return null;
         }
 

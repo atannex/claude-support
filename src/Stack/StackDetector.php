@@ -19,7 +19,7 @@ final class StackDetector
     {
         $composer = $this->json($root.'/composer.json');
         $installed = $this->installedVersions($root);
-        $declared = [...($composer['require'] ?? []), ...($composer['require-dev'] ?? [])];
+        $declared = [...$this->dependencies($composer, 'require'), ...$this->dependencies($composer, 'require-dev')];
         $has = fn (string $package): bool => isset($installed[$package]) || isset($declared[$package]);
         $version = fn (string $package): ?string => $installed[$package] ?? $declared[$package] ?? null;
 
@@ -36,18 +36,18 @@ final class StackDetector
         }
 
         $node = $this->json($root.'/package.json');
-        $nodeDeps = [...($node['dependencies'] ?? []), ...($node['devDependencies'] ?? [])];
+        $nodeDeps = [...$this->dependencies($node, 'dependencies'), ...$this->dependencies($node, 'devDependencies')];
         $frontend = array_keys(Catalog::match(Catalog::NPM, $nodeDeps));
 
         return new Stack(
-            php: isset($declared['php']) ? (string) $declared['php'] : null,
+            php: $declared['php'] ?? null,
             laravel: $version('laravel/framework'),
             testRunner: $has('pestphp/pest') ? 'Pest' : 'PHPUnit',
             pint: $has('laravel/pint'),
             phpstan: $has('larastan/larastan') || $has('phpstan/phpstan') || $has('nunomaduro/larastan'),
             packages: $packages,
             frontend: $frontend,
-            composerScripts: array_map('strval', array_keys($composer['scripts'] ?? [])),
+            composerScripts: is_array($composer['scripts'] ?? null) ? array_map('strval', array_keys($composer['scripts'])) : [],
             database: $database,
         );
     }
@@ -58,13 +58,34 @@ final class StackDetector
         $lock = $this->json($root.'/composer.lock');
         $versions = [];
 
-        foreach ([...($lock['packages'] ?? []), ...($lock['packages-dev'] ?? [])] as $package) {
-            if (isset($package['name'], $package['version'])) {
-                $versions[$package['name']] = ltrim((string) $package['version'], 'v');
+        foreach (['packages', 'packages-dev'] as $section) {
+            foreach (is_array($lock[$section] ?? null) ? $lock[$section] : [] as $package) {
+                if (is_array($package) && is_string($package['name'] ?? null) && is_string($package['version'] ?? null)) {
+                    $versions[$package['name']] = ltrim($package['version'], 'v');
+                }
             }
         }
 
         return $versions;
+    }
+
+    /**
+     * A name => constraint map from a manifest, ignoring entries that aren't strings.
+     *
+     * @param  array<string, mixed>  $manifest
+     * @return array<string, string>
+     */
+    private function dependencies(array $manifest, string $key): array
+    {
+        $dependencies = [];
+
+        foreach (is_array($manifest[$key] ?? null) ? $manifest[$key] : [] as $name => $constraint) {
+            if (is_string($name) && is_string($constraint)) {
+                $dependencies[$name] = $constraint;
+            }
+        }
+
+        return $dependencies;
     }
 
     /** @return array<string, mixed> */
